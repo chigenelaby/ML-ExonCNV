@@ -1,3 +1,20 @@
+<!--- TOP OF README.MD --->
+<div align="center">
+
+# ⚠️  NON-COMMERCIAL LICENSE  ⚠️
+
+**This repository is licensed under *Creative Commons Attribution-NonCommercial 4.0 International* (CC BY-NC 4.0).**  
+You may freely use, share and modify the material **for any non-commercial purpose** provided you give appropriate credit.
+
+**ANY COMMERCIAL USE, DISTRIBUTION, OR SAAS DEPLOYMENT IS *PROHIBITED* WITHOUT A SEPARATE WRITTEN AGREEMENT.**  
+Unauthorized commercial usage violates copyright and patent rights and will be pursued in court.
+
+Contact `<your-email@example.com>` for commercial licensing options.
+
+</div>
+
+---
+
 
 # ML-ExonCNV  
 *A machine learning-based tool for exon-level Copy Number Variation (CNV) detection from DNA sequencing data.*  
