@@ -9,7 +9,7 @@ You may freely use, share and modify the material **for any non-commercial purpo
 **ANY COMMERCIAL USE, DISTRIBUTION, OR SAAS DEPLOYMENT IS *PROHIBITED* WITHOUT A SEPARATE WRITTEN AGREEMENT.**  
 Unauthorized commercial usage violates copyright and patent rights and will be pursued in court.
 
-Contact `<your-email@example.com>` for commercial licensing options.
+Contact `yshbioinfo@126.com` for commercial licensing options.
 
 </div>
 
