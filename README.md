@@ -71,7 +71,7 @@ For each processed sample, the following output files are generated in the sampl
 
 `ExonResultV3/mos.txt`: the processed mosaic CNVs results.
 
-`ExonResultV3/qc_info.txt`: degradation coefficient 
+`ExonResultV3/qc_info.txt`: technical variability 
 
 `ExonResultV3/qc_karyotype.txt`: karyotype results
 
@@ -181,7 +181,7 @@ ML-ExonCNV.py control-build INPUTFILE OUTDIR VERSION REFERENCE <flags>
 
 Optional:
 
-*--sampcov*: x (float, 0-1): Retain the interval if ≥100x% (default: 0.8) of samples have a minimum depth (*--min_dep*, default: 50) in this region.
+*--sampcov*: X (float, 0-1): Retain the interval if ≥ < X > % (default: 0.8) of samples have a minimum depth (*--min_dep*, default: 50) in this region.
 
 *--min_dep*:  Minimum average depth (default: 50)  of samples in the genomic intervals defined as above.
 
@@ -213,7 +213,7 @@ ML-ExonCNV.py CNV_calling INPUTFILE OUTDIR VERSION REFERENCE <flags>
 
 *--regions*: accepts a custom target regions file. If unspecified, the tool defaults to the *filtered target regions*  generated during the *control-build* step
 
-This step will produce the final results (format_gene_info.txt、format_cnv_info_all_sample.txt) of the samples given in INPUTFILE.
+This step will produce the final results (format_gene_info.txt, format_cnv_info_all_sample.txt, etc.) of the samples given in INPUTFILE.
 
 ### single_analysis
 ```
