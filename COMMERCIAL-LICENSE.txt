@@ -1,0 +1,23 @@
+=================================================================
+COMMERCIAL LICENSE AGREEMENT
+(READ THIS BEFORE USING THE SOFTWARE FOR ANY COMMERCIAL PURPOSE)
+=================================================================
+Copyright © 2025 yangshuanghao and beijing chigene
+
+This software (source code, binaries, algorithms, and documentation) is protected by:  
+  a) copyright law;  
+  b) one or more pending/issued patents.
+
+You may NOT use, copy, distribute, modify, or create derivative works of this software for any COMMERCIAL PURPOSE without first obtaining a separate, express, written commercial license from yangshuanghao.
+
+"Commercial Purpose" means any use whatsoever that is intended for, or results in, direct or indirect commercial advantage or monetary compensation. Examples include, without limitation:
+  - Selling or licensing a product or service that incorporates or is derived from this software;
+  - Providing a paid service (SaaS, cloud, on-premise) that relies on this software;
+  - Using the software internally to reduce costs or increase revenue of a for-profit entity.
+
+UNAUTHORIZED COMMERCIAL USE CONSTITUTES WILLFUL COPYRIGHT AND PATENT INFRINGEMENT UNDER U.S., EU, AND OTHER APPLICABLE LAWS, SUBJECT TO CIVIL DAMAGES, INJUNCTIVE RELIEF, AND CRIMINAL PENALTIES.
+
+To inquire about a commercial license, contact:  
+yangshuanghao  yshbioinfo@126.com
+
+ALL RIGHTS NOT EXPRESSLY GRANTED HEREIN ARE RESERVED.
