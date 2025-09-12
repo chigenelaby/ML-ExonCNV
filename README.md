@@ -73,7 +73,7 @@ For each processed sample, the following output files are generated in the sampl
 
 `ExonResultV3/qc_info.txt`: technical variability.
 
-`ExonResultV3/qc_karyotype.txt`: karyotype CNV results.
+`ExonResultV3/qc_karyotype.txt`: karyotype CNVs results.
 
 `ExonResultV3/qc_karyotype_mos.txt`: mosaic karyotype results.
 
