@@ -7,7 +7,7 @@
 You may freely use, share and modify the material **for any non-commercial purpose** provided you give appropriate credit.
 
 **ANY COMMERCIAL USE, DISTRIBUTION, OR SAAS DEPLOYMENT IS *PROHIBITED* WITHOUT A SEPARATE WRITTEN AGREEMENT.**  
-Unauthorized commercial usage violates copyright and patent rights and will be pursued in court.
+Unauthorized commercial usage violates copyright and patent rights.
 
 Contact `yshbioinfo@126.com` for commercial licensing options.
 
