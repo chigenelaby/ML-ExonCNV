@@ -1,15 +1,15 @@
 <!--- TOP OF README.MD --->
 <div align="center">
 
-# ⚠️  NON-COMMERCIAL LICENSE  ⚠️
+# NON-COMMERCIAL LICENSE 
 
-**This repository is licensed under *Creative Commons Attribution-NonCommercial 4.0 International* (CC BY-NC 4.0).**  
-You may freely use, share and modify the material **for any non-commercial purpose** provided you give appropriate credit.
+*This repository is licensed under *Creative Commons Attribution-NonCommercial 4.0 International* (CC BY-NC 4.0).* 
+You may freely use, share and modify the material for any non-commercial purpose provided you give appropriate credit.
 
-**ANY COMMERCIAL USE, DISTRIBUTION, OR SAAS DEPLOYMENT IS *PROHIBITED* WITHOUT A SEPARATE WRITTEN AGREEMENT.**  
+*ANY COMMERCIAL USE, DISTRIBUTION, OR SAAS DEPLOYMENT IS *PROHIBITED* WITHOUT A SEPARATE WRITTEN AGREEMENT.*
 Unauthorized commercial usage violates copyright and patent rights.
 
-Contact `yshbioinfo@126.com` for commercial licensing options.
+Contact `yshbioinfo@126.com` for commercial licensing options. Commercial users will receive full technical support and optimization services.
 
 </div>
 
