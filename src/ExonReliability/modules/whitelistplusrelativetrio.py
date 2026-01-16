@@ -24,8 +24,11 @@ def coverageregion():
 				
 	
 #01/31/2024  相对可靠修改，家系支持，满足外显子个数以及平衡系数，白名单
-def whitelist():
-	white = os.path.join(os.path.dirname(os.path.abspath(__file__)),"whitelistrelativereliability.txt")
+def whitelist(version):
+	if version == "hg19": 
+		white = os.path.join(os.path.dirname(os.path.abspath(__file__)),"whitelistrelativereliability.txt")
+	else:
+		white = os.path.join(os.path.dirname(os.path.abspath(__file__)),"hg38_whitelistrelativereliability.txt")
 	region =[]
 	with open(white,"r") as out:
 		for lines in out:
@@ -35,7 +38,7 @@ def whitelist():
 			
 
 
-def modificationrelative(mfile,palvalue,outname,sexoncv):
+def modificationrelative(mfile,palvalue,outname,sexoncv,version):
 	#palvalue = {'ACD573':0.0019,'ACD574':0.0138,'ACD575':0.0059}
 	rei = {}
 	specialdealgain2 = ["gain2","gain"] # 特别可靠保留
@@ -65,7 +68,7 @@ def modificationrelative(mfile,palvalue,outname,sexoncv):
 			en = int(ori[ei])
 			regionlegth = en - st + 1
 			J = 0
-			for tvalues in whitelist():
+			for tvalues in whitelist(version):
 				cChr,cst,cen = tvalues
 				if(Chr==cChr and cst <= st and cen >= en):
 					J += 1

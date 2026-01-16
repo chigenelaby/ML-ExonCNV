@@ -101,6 +101,8 @@ def chr_tonum(tmpchr):
     if tmpchr.startswith("NC"):
         return int(tmpchr[7:9])
     elif tmpchr.startswith("chr"):
+        if tmpchr not in {f"chr{i}" for i in range(1, 23)} | {"chrX", "chrY"}:
+            return 0
         if tmpchr == "chrX":
             return 23
         elif tmpchr == "chrY":
@@ -521,6 +523,8 @@ def read_exondetail(f_exondetail):
     
             lparts = line.rstrip("\n").split("\t")
             chrnum = chr_tonum(lparts[0])
+            if chrnum == 0:
+                continue
             start = int(lparts[1])
             end = int(lparts[2])
             diff = float(lparts[5])
@@ -551,10 +555,10 @@ def whichsex(dictlib):
     total_ab = len(list_abnorm)
     # print(list_copydiff)
     # print(list_copydiff_abnorm)
-    try:
-        ratio = total_ab / total
-    except:
+    if total == 0:
         ratio = 1
+    else:
+        ratio = total_ab / total
     if ratio < 0.4:
         sex = 'XY'
     else:
@@ -591,6 +595,8 @@ def read_gvcfmut(gvcf_mut):
     
             lparts = line.rstrip("\n").split("\t")
             chrnum = chr_tonum(lparts[0])
+            if chrnum == 0:
+                continue
             pos = int(lparts[1])
             dp_ref, dp_mut = get_dpinfo(lparts[8], lparts[9])
             d[chrnum].append(MUT(chrnum, pos, dp_ref, dp_mut))
@@ -1226,7 +1232,6 @@ def filter_mos(list_mos, sex, bool_mut, total_reg1st):
         if not bool_1stfilter:
             data_quality += 1
         bool_1stfilter = False
-        
         if data_quality >= 6:
             if not no_dataqual_filter:
                 l = list(filter(lambda x: x.prt_cell > 0.45, l))
@@ -1246,10 +1251,10 @@ def filter_mos(list_mos, sex, bool_mut, total_reg1st):
             b6 = mos.info['total_samedist_mid']<=1 and mos.info['total_samedist_short']<=10
             b7 = mos.evi_exon is None or mos.evi_exon
             b8 = not bool_mut or mos.evi_mut is None or mos.evi_mut or (sex == 'XY' and mos.chrnum in [23, 24])
-            
+            #if str(mos.chrnum) == "5":
+            #    print(mos.chrnum, mos.start, mos.end, b1, b2, b3, b4,b5,b6,b7,b8)
             if b1 and b2 and b3 and b4 and b5 and b6 and b7 and b8:
                 l.append(mos)
-    
     
     return l, data_quality
 
@@ -1354,6 +1359,9 @@ if verbose:
     print_listlog("|| list_mos2", list_mos)
 
 print_log("mosaic find::filter region and fix end")
+#print(len(list_mos))
+#for i in list_mos:
+#    print(i.chrnum, i.start, i.end)
 list_mos, data_quality = filter_mos(list_mos, sex, bool_mut, total_reg1st)
 list_mos = fix_end(list_mos)
 if verbose:

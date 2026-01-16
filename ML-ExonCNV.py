@@ -16,6 +16,45 @@ import logging
 import fire
 import shutil
 
+LIBRARY_FILES = {
+    "hg19": {
+        "reference": "hg19.fa",
+        "regionfile": "hg19_target.bed",
+        "nt_target_bed": "target_functionnm.bed",
+        "telomere_bed": "Tolomere1.bed",
+        "gene_att": "gene_attentions.txt",
+        "gene_att1": "gene_attentions.txt_1",
+        "gene_att2": "gene_attentions.txt_2",
+        "low_qua_bed": "LowQualityRegion.bed",
+        "repeat_obj_file": "exons_max_repeat_new.pic",
+        "unbalance_exons_file": "D-unbal-reg.txt",
+        "gene_filterfalse_file": "gene_filterfalse.txt",
+        "vaf_db": "s50_test.pic",
+        "dep_contrast_db": "dep_contrast.db",
+        "Rngc_bed": "Rngc.bed",
+        "wescnv_ini": "wescnv.ini",
+        "target_nm": "EXON.longestNM.bed"
+    },
+    "hg38": {
+        "reference": "hg38.fa",
+        "regionfile": "hg38_target.bed",
+        "nt_target_bed": "hg38_target_functionnm.bed",
+        "telomere_bed": "hg38_Tolomere1.bed",
+        "gene_att": "hg38_gene_attentions.txt",
+        "gene_att1": "hg38_gene_attentions.txt_1",
+        "gene_att2": "hg38_gene_attentions.txt_2",
+        "low_qua_bed": "hg38_LowQualityRegion.bed",
+        "repeat_obj_file": "hg38_exons_max_repeat_new.pic",
+        "unbalance_exons_file": "hg38_D-unbal-reg.txt",
+        "gene_filterfalse_file": "hg38_gene_filterfalse.txt",
+        "vaf_db": "s50_test.pic",
+        "dep_contrast_db": "hg38_dep_contrast.db",
+        "Rngc_bed": "hg38_Rngc.bed",
+        "wescnv_ini": "hg38_wescnv.ini", 
+        "target_nm": "hg38_EXON.longestNM.bed"
+    }
+}
+
 #Execute tasks in parallel by a thread pool
 def multiple_run(func,tasks,maxnum = 3):
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -64,20 +103,16 @@ def make_handle(name,sex,outdir):
     with open(handlepath, 'w') as fw:
         print(f'{name}\tNAME\t{sexdir[sex]}\t{name}\t{name}\tNT\tproband\tNAME\tphenotype\t3\tn',file = fw)
 
-
 def make_vcf(name,vcf,outdir):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     vcfpath = f'{outdir}/{name}/Variants/variants.vcf.gz'
     if not os.path.exists(f'{outdir}/{name}/Variants'):
         os.makedirs(f'{outdir}/{name}/Variants')
     cmd1 = f'ln -sf {vcf} {vcfpath}'
-    # print(f'---Running  {cmd1}')
     subprocess.run(cmd1, shell=True, text=True, stdout=subprocess.PIPE)
     cmd2 = f'python {script_dir}/scripts/vcf2table-1.3.py -S -vcf {vcf} -table {outdir}/{name}/Variants/variants.table_complete.txt'
-    # print(f'---Running  {cmd2}')
     subprocess.run(cmd2, shell=True, text=True, stdout=subprocess.PIPE)
     cmd3 = f'cut -f1-5,7 {outdir}/{name}/Variants/variants.table_complete.txt > {outdir}/{name}/Variants/variants.table.txt'
-    # print(f'---Running  {cmd3}')
     subprocess.run(cmd3, shell=True, text=True, stdout=subprocess.PIPE)
 
 def get_dep_bed(name, bam, bed, ref, outdir,prename):
@@ -87,23 +122,19 @@ def get_dep_bed(name, bam, bed, ref, outdir,prename):
     if not os.path.exists(f'{outdir}/{name}/Stat'):
         os.makedirs(f'{outdir}/{name}/Stat')
     mosdepth_cmd = f"mosdepth -x -n -t 3 -F 3844 -T 1,2,3,5,10,15,20,25,30,40,50 -b {bed} -f {ref} {output} {bam}"       #needs mosdepth
-    # print(f'---Running  {mosdepth_cmd}')
     subprocess.run(mosdepth_cmd, shell=True, text=True, stdout=subprocess.PIPE)
 
 #baseQC
 def get_qcstat(bed,outdir):
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    # print(f"{outdir}/depthcov/depthcov.regions.bed.gz")
-    cmd = f'python {script_dir}/scripts/Control_quality.py -target_depth {outdir}/depthcov/depthcov.regions.bed.gz -target_cov {outdir}/depthcov/depthcov.thresholds.bed.gz -target_bed {bed} -prefix stat -outdir {outdir}/Stat'     
-    statsum,stattarget = f'{outdir}/Stat/stat_summary',f'{outdir}/Stat/stat_target'
-    # print(f'---Running  {cmd}')
+    cmd = f'python {script_dir}/scripts/Control_quality.py -target_depth {outdir}/depthcov/depthcov.regions.bed.gz -target_cov {outdir}/depthcov/depthcov.thresholds.bed.gz -target_bed {bed} -prefix stat -outdir {outdir}/Stat'
+    statsum,stattarget = f'{outdir}/Stat/stat_summary',f'{outdir}/Stat/stat_target'  
     subprocess.run(cmd, shell=True, text=True, stdout=subprocess.PIPE) ## hsy
 
 #GC correction
 def gc_correction(bed,outdir):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     cmd = f'Rscript {script_dir}/scripts/gc-norm.R {outdir}/Stat/stat_target {bed} {outdir}/Stat/stat_target_gc'     #needs R
-    # print(f'---Running  {cmd}')
     subprocess.run(cmd, shell=True, text=True, stdout=subprocess.PIPE)  ## hsy
     return f'{outdir}/Stat/stat_target_gc'
 
@@ -153,8 +184,6 @@ def get_cleanbed(sampletable, outdir, sampcov, oribed, newbed):
             elif chrom == 'chrX':
                 if (chrom, start, end) in XXdic or (chrom, start, end) in XYdic:
                     if XXdic[(chrom, start, end)] >= XXnum * float(sampcov) or XYdic[(chrom, start, end)] >= XYnum * float(sampcov):
-                # if (chrom, start, end) in XXdic and (chrom, start, end) in XYdic:
-                    # if XXdic[(chrom, start, end)] >= XXnum * float(sampcov) and XYdic[(chrom, start, end)] >= XYnum * float(sampcov):
                         print(line, file=fw)
                     else:
                         print(f'Ignoring {(chrom, start, end)} as not enough samples ({regiondic[(chrom, start, end)]}/{samplenum})')
@@ -169,7 +198,6 @@ def get_cleanbed(sampletable, outdir, sampcov, oribed, newbed):
 def archivedb(samplepath,sex, database,tablename):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     cmd = f'python {script_dir}/scripts/mk_deplib.py archivedb --samplepath {samplepath} --sex {sex} --database {database} --tablename {tablename}'
-    # print(f'---Running  {cmd}')
     subprocess.run(cmd, shell=True, text=True, stdout=subprocess.PIPE)
 
 # Build control library for each sample 
@@ -177,17 +205,14 @@ def getdeplib(samplepath,sex, control_save_path, database,tablename, control_num
     script_dir = os.path.dirname(os.path.abspath(__file__))
     libcode = samplepath.split('/')[-1]
     cmd = f'python {script_dir}/scripts/mk_deplib_new.py getdeplib --samplepath {samplepath} --sex {sex} --control_save_path {control_save_path} --database {database} --tablename {tablename} --control_num {control_num} --corr_default {corr_default}'
-    # print(f'---Running  {cmd}')
     subprocess.run(cmd, shell=True, text=True, stdout=subprocess.PIPE)
 
 # Build frequency database
 def mk_freqdb(dirfile,output):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     cmd1 = f'python {script_dir}/src/exon_pipeline/apps/freq/build_freq_data.py build {dirfile} {output}raw'
-    # print(f'---Running  {cmd1}')
     subprocess.run(cmd1, shell=True, text=True, stdout=subprocess.PIPE)
     cmd2 = f'python {script_dir}/src/exon_pipeline/tools/mod_wes_freq.py {output}raw {output}'
-    # print(f'---Running  {cmd2}')
     subprocess.run(cmd2, shell=True, text=True, stdout=subprocess.PIPE)
 
 def wescnv1(samplepath,cnvconfig,sex):
@@ -198,79 +223,62 @@ def wescnv1(samplepath,cnvconfig,sex):
     if not os.path.exists(respath):
         os.makedirs(respath)
     cmd0 = f'python {script_dir}/src/exon_pipeline/core/contrast.py --contrast_build_file {samplepath}/exon_lib1.txt --config-file {cnvconfig} --output {respath}/{sex}.txt '
-    # print(f'---Running  {cmd0}')
     subprocess.run(cmd0, shell=True, text=True, stdout=subprocess.PIPE) ## hsy
     
     cmd1 = f'python {script_dir}/src/exon_pipeline/forward/make_exons.py --wkcode {libcode} --analyse_path {statpath} --contrast_file {respath}/{sex}_contrast.pic --config-file {cnvconfig} --sex {sex} --outdir {respath}'
-    # print(f'---Running  {cmd1}')
     subprocess.run(cmd1, shell=True, text=True, stdout=subprocess.PIPE) 
     
     cmd2 = f'python {script_dir}/src/exon_pipeline/forward/make_flags.py --wkcode {libcode} --analyse_path {respath} --config-file {cnvconfig}' 
-    # print(f'---Running  {cmd2}')
     subprocess.run(cmd2, shell=True, text=True, stdout=subprocess.PIPE)
 
-def wescnv2(samplepath,cnvconfig,sex,freq_db,bam,version,tmpfile = False):
+def wescnv2(samplepath,cnvconfig,sex,freq_db,bam,version,reference,tmpfile = False, version="hg19"):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     libcode = samplepath.split('/')[-1]
     respath = f'{samplepath}/ExonResultV3'
-    if version == 'hg19':
-        reference = f"{script_dir}/docs/hg19.fa"
-    elif version == 'hg38':
-        reference = f"{script_dir}/docs/hg38.fa"
     if not os.path.exists(respath):
         os.makedirs(respath)
+    if not reference:
+        reference = f"{script_dir}/docs/{LIBRARY_FILES[version]['reference']}"
+    target_nm = f"{script_dir}/docs/{LIBRARY_FILES[version]['target_nm']}"
 
     cmd3 = f'python {script_dir}/src/exon_pipeline/forward/get_freq_reliability.py --wkcode {libcode} --analyse_path {respath} --config-file {cnvconfig} --sex {sex} --freq_db_file {freq_db}'
-    # print(f'---Running  {cmd3}')
     subprocess.run(cmd3, shell=True, text=True, stdout=subprocess.PIPE)
 
     cmd4 = f'python {script_dir}/src/exon_pipeline/forward/make_exons_details.py --wkcode {libcode} --analyse_path {respath} --config-file {cnvconfig} --outdir {respath}'
-    # print(f'---Running  {cmd4}')
     subprocess.run(cmd4, shell=True, text=True, stdout=subprocess.PIPE)
     
     cmd5 = f'python -m exon_pipeline qc {libcode} {respath} {cnvconfig}'
-    # print(f'---Running  {cmd5}')
     subprocess.run(cmd5, shell=True, text=True, stdout=subprocess.PIPE)
     
     cmd6 = f'python -m exon_pipeline qc_karyotype {libcode} {respath} {cnvconfig}'
-    # print(f'---Running  {cmd6}')
     subprocess.run(cmd6, shell=True, text=True, stdout=subprocess.PIPE)
     
     cmd7 = f'python -m exon_pipeline format {libcode} {respath} {cnvconfig}'
-    # print(f'---Running  {cmd7}')
     subprocess.run(cmd7, shell=True, text=True, stdout=subprocess.PIPE)
     
     #manta (python2)
     cmd8 = f'/opt/conda/envs/py27/bin/python2 {script_dir}/src/manta/manta-1.6.0//bin/configManta.py --bam {bam} --referenceFasta {reference} --runDir {samplepath}/Manta --exome'
-    # print(f'---Running  {cmd8}')
     subprocess.run(cmd8, shell=True, text=True, stdout=subprocess.PIPE)
     cmd9 = f'/opt/conda/envs/py27/bin/python2 {samplepath}/Manta/runWorkflow.py -j 17 --quiet'
-    # print(f'---Running  {cmd9}')
     subprocess.run(cmd9, shell=True, text=True, stdout=subprocess.PIPE)
     cmd10 = f'/opt/conda/envs/py27/bin/python2 {script_dir}/src/manta/convertInversion.py samtools {reference} {samplepath}/Manta/results/variants/diploidSV.vcf.gz > {samplepath}/Manta/diploidSV.vcf'
-    # print(f'---Running  {cmd10}')
     subprocess.run(cmd10, shell=True, text=True, stdout=subprocess.PIPE)
     
     #mergemanta
-    cmd11 = f'python {script_dir}/src/manta/merge-manta.py {samplepath}/Manta/diploidSV.vcf {samplepath}/ExonResultV3/exons_details.txt {samplepath}/ExonResultV3/qc_karyotype.txt {samplepath}/ExonResultV3/format_gene_info_pre.txt {samplepath}/ExonResultV3/format_gene_info-manta.txt --sam {libcode} --db_exon {script_dir}/docs/EXON.longestNM.bed --db_freq {script_dir}/src/manta/wesmanta.db'
-    # print(f'---Running  {cmd11}')
+    cmd11 = f'python {script_dir}/src/manta/merge-manta.py {samplepath}/Manta/diploidSV.vcf {samplepath}/ExonResultV3/exons_details.txt {samplepath}/ExonResultV3/qc_karyotype.txt {samplepath}/ExonResultV3/format_gene_info_pre.txt {samplepath}/ExonResultV3/format_gene_info-manta.txt --sam {libcode} --db_exon {target_nm} --db_freq {script_dir}/src/manta/wesmanta.db'
     subprocess.run(cmd11, shell=True, text=True, stdout=subprocess.PIPE)
   
     #mos
     cmd12 = f'python {script_dir}/scripts/find-mos.py {samplepath}/ExonResultV3/exons_details.txt {samplepath}/ExonResultV3/mos.txt -v {samplepath}/Variants/variants.vcf.gz'
-    # print(f'---Running  {cmd12}')
     subprocess.run(cmd12, shell=True, text=True, stdout=subprocess.PIPE)
     cmd13 = f'python {script_dir}/scripts/fix-sex.py {samplepath}/ExonResultV3/qc_karyotype.txt {samplepath}/ExonResultV3/mos.txt {samplepath}/ExonResultV3/qc_karyotype_mos.txt'
-    # print(f'---Running  {cmd13}')
     subprocess.run(cmd13, shell=True, text=True, stdout=subprocess.PIPE)
     
     #reliability by ML
-    cmd14 = f'/workspace/sklearn/bin/python {script_dir}/src/ExonReliability/finetunlossgainrevis.py notrio -input {samplepath}/ExonResultV3/format_gene_info-manta.txt -name {libcode} -exonmode 2 -svcf {samplepath}/Variants/variants.vcf.gz'
-    # print(f'---Running  {cmd14}')
+    cmd14 = f'/workspace/sklearn/bin/python {script_dir}/src/ExonReliability/finetunlossgainrevis.py notrio -input {samplepath}/ExonResultV3/format_gene_info-manta.txt -name {libcode} -exonmode 2 -svcf {samplepath}/Variants/variants.vcf.gz -version {version}'
     subprocess.run(cmd14, shell=True, text=True, stdout=subprocess.PIPE)
     
     cmd15 = f'python {script_dir}/src/ExonReliability/Reportloci/reportlocibynewalgorithm.py {samplepath}/ExonResultV3/format_gene_info.txt {samplepath}/handle.txt {libcode} --filter_info=True'
-    # print(f'---Running  {cmd15}')
     subprocess.run(cmd15, shell=True, text=True, stdout=subprocess.PIPE)
     
     #delete tmpfiles
@@ -286,17 +294,16 @@ def wescnv2(samplepath,cnvconfig,sex,freq_db,bam,version,tmpfile = False):
     if not tmpfile:
         delete_tmpfiles(tmplist)
 
-def stats_single(name,sex,bam,vcf, version,bed, outdir,tmpfile = False):       #NO filter (use newbed,depthcov)
+def stats_single(name,sex,bam,vcf, version, reference, bed, outdir,tmpfile = False):       #NO filter (use newbed,depthcov)
     script_dir = os.path.dirname(os.path.abspath(__file__))     
     samplepath = f'{outdir}/{name}'
     if not os.path.exists(samplepath):
         os.makedirs(samplepath)
     make_handle(name,sex,outdir)
     make_vcf(name,vcf,outdir)
-    if version == 'hg19':
-        reference = f"{script_dir}/docs/hg19.fa"
-    elif version == 'hg38':
-        reference = f"{script_dir}/docs/hg38.fa"
+    if not reference:
+        reference = f"{script_dir}/docs/{LIBRARY_FILES[version]['reference']}"
+    
     newbed = bed
     get_dep_bed(name, bam, newbed, reference, outdir,'depthcov')
     samplepath = f'{outdir}/{name}'
@@ -308,53 +315,54 @@ def stats_single(name,sex,bam,vcf, version,bed, outdir,tmpfile = False):       #
     #GC correction
     depfile = f'{samplepath}/Stat/stat_target_gc'
     gc_correction(gcbed,samplepath)
-    database = f"{script_dir}/docs/dep_contrast.db"
+    
+    database = f"{outdir}/{LIBRARY_FILES[version]['dep_contrast_db']}"
     depcontrast_tablename = f"wes_depcontrast_{version}"
     archivedb(samplepath,sex, database,depcontrast_tablename)
     tmplist = [os.path.join(samplepath,'depthcov')]
     if not tmpfile:
         delete_tmpfiles(tmplist)
 
-def precnv_single(name,sex,bam,vcf,version,bed, outdir,tmpfile = False):
-    stats_single(name,sex,bam,vcf, version,bed, outdir,tmpfile = tmpfile)
+def precnv_single(name,sex,bam,vcf,version,reference, bed, outdir,tmpfile = False):
+    stats_single(name,sex,bam,vcf, version,reference, bed, outdir,tmpfile = tmpfile)
     cnvconfig = f'{outdir}/wescnv_final.ini'
     samplepath = f'{outdir}/{name}'
     depcontrastfile = f'{samplepath}/exon_lib1.txt'
     script_dir = os.path.dirname(os.path.abspath(__file__))     
-    database = f"{script_dir}/docs/dep_contrast.db"
+    
+    database = f"{outdir}/{LIBRARY_FILES[version]['dep_contrast_db']}"
     depcontrast_tablename = f"wes_depcontrast_{version}"
     getdeplib(samplepath,sex, depcontrastfile, database,depcontrast_tablename, control_num=30, corr_default = 0.9)
     wescnv1(samplepath,cnvconfig,sex)
 
-def single_analysis(name,sex,bam,vcf,bed,outdir,version,freqdb = '',tmpfile = False):
-    precnv_single(name,sex,bam,vcf, version,bed, outdir,tmpfile = tmpfile)
-    CNV_calling(name,sex,bam,outdir, version,freqdb = freqdb,tmpfile = tmpfile)
+def single_analysis(name,sex,bam,vcf,bed,outdir,version,reference, freqdb = '',tmpfile = False):
+    precnv_single(name,sex,bam,vcf, version,reference, bed, outdir,tmpfile = tmpfile)
+    CNV_calling(name,sex,bam,outdir, version,reference,freqdb = freqdb,tmpfile = tmpfile)
 
 # Module 1: Obtain basic stats required for sample analysis (output: sample/Stat/stat_target_gc)
-def get_stats(inputfile,outdir,version,sampcov = 0.8,max_threads = 3,min_dep = 50,tmpfile = False):
+def get_stats(inputfile,outdir,version,reference,sampcov = 0.8,max_threads = 3,min_dep = 50,tmpfile = False):
     script_dir = os.path.dirname(os.path.abspath(__file__))    
-    if version == 'hg19':
-        reference = f"{script_dir}/docs/hg19.fa"
-        regionfile = f"{script_dir}/docs/target_functionnm.bed"
-    elif version == 'hg38':
-        reference = f"{script_dir}/docs/hg38.fa"
-        regionfile = f"{script_dir}/docs/hg38_target.bed"
-    # get paths
-    cmd = f"cp {script_dir}/docs/dep_contrast.db {outdir}/dep_contrast.db && cp {script_dir}/docs/Rngc.bed {outdir}/Rngc.bed"
+    lib_files = LIBRARY_FILES[version]
+    if not reference:
+        reference = f"{script_dir}/docs/{lib_files['reference']}"
+    regionfile = f"{script_dir}/docs/{lib_files['regionfile']}"
+ 
+    cmd = f"cp {script_dir}/docs/{lib_files['dep_contrast_db']} {outdir}/{lib_files['dep_contrast_db']} && cp {script_dir}/docs/{lib_files['Rngc_bed']} {outdir}/{lib_files['Rngc_bed']}"
     subprocess.run(cmd, shell=True, text=True, stdout=subprocess.PIPE)
-    database = f"{outdir}/dep_contrast.db"
-    # database = f"{script_dir}/docs/dep_contrast.db"
-    rawcnvconfig = f"{script_dir}/docs/wescnv.ini"
-    nt_target_bed = f"{script_dir}/docs/target_functionnm.bed"
-    telomere_bed = f"{script_dir}/docs/Tolomere1.bed"
-    gene_att = f"{script_dir}/docs/gene_attentions.txt"
-    gene_att1 = f"{script_dir}/docs/gene_attentions.txt_1"
-    gene_att2 = f"{script_dir}/docs/gene_attentions.txt_2"
-    low_qua_bed = f"{script_dir}/docs/LowQualityRegion.bed"
-    repeat_obj_file = f"{script_dir}/docs/exons_max_repeat_new.pic"
-    unbalance_exons_file = f"{script_dir}/docs/D-unbal-reg.txt"
-    gene_filterfalse_file = f"{script_dir}/docs/gene_filterfalse.txt"
-    vaf_db = f"{script_dir}/docs/s50_test.pic"
+    
+    database = f"{outdir}/{lib_files['dep_contrast_db']}"
+    rawcnvconfig = f"{script_dir}/docs/{lib_files['wescnv_ini']}"
+    
+    nt_target_bed = f"{script_dir}/docs/{lib_files['nt_target_bed']}"
+    telomere_bed = f"{script_dir}/docs/{lib_files['telomere_bed']}"
+    gene_att = f"{script_dir}/docs/{lib_files['gene_att']}"
+    gene_att1 = f"{script_dir}/docs/{lib_files['gene_att1']}"
+    gene_att2 = f"{script_dir}/docs/{lib_files['gene_att2']}"
+    low_qua_bed = f"{script_dir}/docs/{lib_files['low_qua_bed']}"
+    repeat_obj_file = f"{script_dir}/docs/{lib_files['repeat_obj_file']}"
+    unbalance_exons_file = f"{script_dir}/docs/{lib_files['unbalance_exons_file']}"
+    gene_filterfalse_file = f"{script_dir}/docs/{lib_files['gene_filterfalse_file']}"
+    vaf_db = f"{script_dir}/docs/{lib_files['vaf_db']}"
    
     inputname = inputfile.split('/')[-1].split('.')[0]
     if not os.path.exists(outdir):
@@ -402,7 +410,7 @@ def get_stats(inputfile,outdir,version,sampcov = 0.8,max_threads = 3,min_dep = 5
             stats_missionlist.append((newbed,samplepath))
             tmplist.append(os.path.join(outdir, name,'rawdepthcov'))
             tmplist.append(os.path.join(outdir, name,'depthcov'))
-    # print(mosdep_missionlist1)
+    
     multiple_run(make_handle,handle_missionlist,maxnum = int(max_threads))
     multiple_run(make_vcf,vcf_missionlist,maxnum = int(max_threads))
     # #rawmosdep
@@ -437,7 +445,6 @@ def get_stats(inputfile,outdir,version,sampcov = 0.8,max_threads = 3,min_dep = 5
                 line = x.strip('\n')
                 linelist = line.split('\t')
                 if float(linelist[15]) < min_dep:
-                    # print(f'Ignoring {name} {sex} {bam} which has average depth  {linelist[15]} in {newbed}')
                     ignoredlist.append((name,sex,bam,vcf))
                     continue
     
@@ -483,7 +490,10 @@ def get_stats(inputfile,outdir,version,sampcov = 0.8,max_threads = 3,min_dep = 5
 #Module2: build control database (based on sample stats)
 def get_cnv_db(inputfile,outdir,version,filtered_sample_file,max_threads = 3,tmpfile = False):
     script_dir = os.path.dirname(os.path.abspath(__file__)) 
-    database = f"{outdir}/dep_contrast.db"
+    # 从版本映射字典获取数据库路径
+    lib_files = LIBRARY_FILES[version]
+    database = f"{outdir}/{lib_files['dep_contrast_db']}"
+    
     inputname = inputfile.split('/')[-1].split('.')[0]
     if not os.path.exists(outdir):
         os.makedirs(outdir)
@@ -536,20 +546,22 @@ def get_cnv_db(inputfile,outdir,version,filtered_sample_file,max_threads = 3,tmp
 
 #Module3: get wescnv result (based on control database)
 #Single sample
-def CNV_detect(name,sex,bam,outdir, version,freqdb = '',tmpfile = False):
+def CNV_detect(name,sex,bam,outdir, version,reference,freqdb = '',tmpfile = False):
     samplepath = f'{outdir}/{name}'
     cnvconfig = f'{outdir}/wescnv_final.ini'
     if not freqdb:
         freqdb = f'{outdir}/{sex}_freqdb.pic'
     if not glob.glob(freqdb):
         assert False,f'frequency database {freqdb} does not exist'
-    wescnv2(samplepath,cnvconfig,sex,freqdb,bam,version,tmpfile = tmpfile)
+    wescnv2(samplepath,cnvconfig,sex,freqdb,bam,version,reference,tmpfile = tmpfile, version=version)
 
-
-def CNV_calling(inputfile,outdir,version,freqdb = '',tmpfile = False, regions = '',max_threads = 5):
+def CNV_calling(inputfile,outdir,version,reference,freqdb = '',tmpfile = False, regions = '',max_threads = 5):
     script_dir = os.path.dirname(os.path.abspath(__file__))
+    lib_files = LIBRARY_FILES[version]  # 获取版本专属文件配置
     cnvmissionlist = []
     companamissionlist = []
+    if not reference:
+       reference = f"{script_dir}/docs/{LIBRARY_FILES[version]['reference']}" 
     with open(inputfile, 'r') as fo:
         for x in fo:
             line = x.strip('\n')
@@ -562,8 +574,7 @@ def CNV_calling(inputfile,outdir,version,freqdb = '',tmpfile = False, regions = 
                 if not glob.glob(f'{samplepath}/{request}'):
                     stats = False
             if stats:
-                cnvmissionlist.append((name,sex,bam,outdir, version,freqdb,tmpfile))
-                # CNV_detect(name,sex,bam,outdir, version,freqdb,tmpfile = tmpfile)
+                cnvmissionlist.append((name,sex,bam,outdir, version,reference, freqdb,tmpfile))
             else:
                 if not regions:
                     inputname = inputfile.split('/')[-1].split('.')[0]
@@ -571,19 +582,19 @@ def CNV_calling(inputfile,outdir,version,freqdb = '',tmpfile = False, regions = 
                     if glob.glob(newbed):
                         regions = newbed
                     else:
-                        regions = f"{script_dir}/docs/{version}_target.bed"
-                companamissionlist.append((name,sex,bam,vcf,regions,outdir,version,freqdb,tmpfile))
-                # single_analysis(name,sex,bam,vcf,regions,outdir,version,freqdb = freqdb,tmpfile = tmpfile)
+                        regions = f"{script_dir}/docs/{lib_files['regionfile']}"
+                companamissionlist.append((name,sex,bam,vcf,regions,outdir,version,reference, freqdb,tmpfile))
+    
     if cnvmissionlist:
         multiple_run(CNV_detect,cnvmissionlist,maxnum = int(max_threads))
     if companamissionlist:
         multiple_run(single_analysis,companamissionlist,maxnum = int(max_threads))
-        
 
 #Get control database for cnv calling (combine Module1 and Module2)
-def control_train(inputfile,outdir,version,sampcov = 0.8,max_threads = 3,min_dep = 50,tmpfile = False):
-    filtered_sample_file = get_stats(inputfile,outdir,version,sampcov = sampcov,max_threads = max_threads,min_dep = 50,tmpfile = tmpfile)
+def control_train(inputfile,outdir,version,reference,sampcov = 0.8,max_threads = 3,min_dep = 50,tmpfile = False):
+    filtered_sample_file = get_stats(inputfile,outdir,version,reference,sampcov = sampcov,max_threads = max_threads,min_dep = min_dep,tmpfile = tmpfile)
     get_cnv_db(inputfile,outdir,version,filtered_sample_file,max_threads = max_threads,tmpfile = tmpfile)
+
 def main(hidden=True):
     functions = {
         "control-build": control_train,

@@ -84,6 +84,8 @@ def getdeplib(samplepath,sex, control_save_path, database,tablename, control_num
     query_sql = f'SELECT * FROM {tablename}'
     engine = create_engine(f'sqlite:///{database}')
     union_field = os.path.join(os.path.dirname(database), "Rngc.bed")
+    if not os.path.exists(union_field):
+        union_field = os.path.join(os.path.dirname(database), "hg38_Rngc.bed")
     control_lib_data = pd.read_sql_query(query_sql,engine)
     control_num = int(control_num) 
     save_info_ = dict()

@@ -176,7 +176,7 @@ ML-ExonCNV.py control-build INPUTFILE OUTDIR VERSION REFERENCE <flags>
 
 *OUTDIR*:  Output directory  
 
-*VERSION*: Reference genome version (hg19)
+*VERSION*: Reference genome version (hg19/hg38)
 
 *REFERENCE*: Reference genome
 

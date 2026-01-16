@@ -38,8 +38,11 @@ def regionoverlap(goodregion,Chr,a1,a2):
                 if(total == 1):
                     return 1
 
-def ssrfilter():
-        region = os.path.join(os.path.dirname(os.path.abspath(__file__)),"ssr.bed")
+def ssrfilter(version):
+        if version == "hg19":
+            region = os.path.join(os.path.dirname(os.path.abspath(__file__)),"ssr.bed")
+        else:
+            region = os.path.join(os.path.dirname(os.path.abspath(__file__)),"hg38_ssr.bed")
         ssrregion = {}
         ssrregionsort = {}
         ssrregionfirstelemnt = {}
@@ -60,7 +63,7 @@ def ssrfilter():
 
 
 
-def vcftranstable(vcffile):
+def vcftranstable(vcffile, version):
     # filter some parameters,accoding to requires
     # use pyvcf module to do it
     sample_info = {}
@@ -134,7 +137,7 @@ def vcftranstable(vcffile):
     #header = "\t".join(header)
     #fo.write(header + "\n")
     ssrregion = {}
-    ssrregionfirstelemnt,ssrregionsecondelemnt  = ssrfilter()
+    ssrregionfirstelemnt,ssrregionsecondelemnt  = ssrfilter(version)
     variantsdict = {}
     for key,value in sample_info.items():
         #print(key,value)
@@ -211,10 +214,10 @@ def compare(a1,a2,b1,b2): #比较区间是否有交集
   else:
     return 0
 '''
-def calivariant(regionfile,samplename,variantfile):
+def calivariant(regionfile,samplename,variantfile, version):
     goodregion = coverageregion()
     variants = {}
-    variants = vcftranstable(variantfile)
+    variants = vcftranstable(variantfile, version)
     outfile = os.path.join(os.path.dirname(regionfile),"regionexonfinetuneaddvariant.txt")
     #["gain","gain1","gain2","loss1","loss2","loss"]
     #2024/10/25

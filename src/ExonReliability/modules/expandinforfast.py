@@ -81,12 +81,15 @@ def diff_dist_para(diff,dist,posdistpara = 0.001,negdistpara = 0.05,const = 0.5)
 #     return result
 
 
-def demergeinfor(F,samplename,exonmode):
+def demergeinfor(F,samplename,exonmode, version):
  #chrnameJoin
     allinfor = []
     alluqinfor = []
     if str(exonmode) == "2":
-        gms = os.path.join(os.path.dirname(os.path.abspath(__file__)),"gcmappabilityscore_m2.txt")
+        if version == "hg19":
+            gms = os.path.join(os.path.dirname(os.path.abspath(__file__)),"gcmappabilityscore_m2.txt")
+        else:
+            gms = os.path.join(os.path.dirname(os.path.abspath(__file__)),"hg38_gcmappabilityscore_m2.txt")
     else:
         gms = os.path.join(os.path.dirname(os.path.abspath(__file__)),"gcmappabilityscore.txt")
     #print(gms)

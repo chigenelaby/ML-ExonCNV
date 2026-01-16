@@ -29,6 +29,8 @@ def chr_tonum(tmpchr):
     if tmpchr.startswith("NC"):
         return int(tmpchr[7:9])
     elif tmpchr.startswith("chr"):
+        if tmpchr not in {f"chr{i}" for i in range(1, 23)} | {"chrX", "chrY"}:
+            return 0
         if tmpchr == "chrX":
             return 23
         elif tmpchr == "chrY":
@@ -200,7 +202,8 @@ def read_db(db_exon):
             exon_name = lparts[8]
 
             exon = EXON(chrnum, start, end, exon_name)
-
+            if chrnum == 0:
+                continue
             if gene_name in d_gene.keys():
                 d_gene[gene_name].list_exon.append(exon)
             else:
@@ -251,14 +254,14 @@ def read_mantavcf(f_manta):
 
             if not line.startswith("chr"):
                 continue
-    
+ 
             lparts = line.rstrip("\n").split("\t")
 
             chrnum = chr_tonum(lparts[0])
             start = int(lparts[1])
             cnvtype = tr_cnvtype(lparts[2])
 
-            if cnvtype is None:
+            if cnvtype is None or chrnum == 0:
                 continue
 
             end = get_endinfo(lparts[7])
@@ -286,7 +289,8 @@ def read_detail(f):
             start = int(lparts[1])
             end = int(lparts[2])
             diff = float(lparts[5])
-
+            if chrnum == 0:
+                continue
             reg = REG1(chrnum, start, end)
             reg.diff = diff
             d[chrnum].append(reg)
@@ -539,7 +543,8 @@ def to_o(f_in_fmtgene, l_add):
                 bool_XY = True
     
             lparts = line.rstrip("\n").split("\t")
-
+            if chr_tonum(lparts[0]) == 0:
+                continue
 # #chr    start   end     gene_name       gene_info_str   best_exon_str   freq    all_freq        infos   ALX488_exon     ALX488_tag      ALX488_result
 # chr1    368582  368702  OR4F29  (REG:2) NA      0.103   0.2     {"reliability_show": ["满足外显子个数条件"], "report_tag": "NA"}        0/1=1.4966      gain1   不可靠
             cnv = CNV(chr_tonum(lparts[0]), int(lparts[1]), int(lparts[2]), lparts[10][0:4])
@@ -583,10 +588,7 @@ def to_o(f_in_fmtgene, l_add):
         lparts[2] = str(cnv.end)
 
         # manta结果，添加标注
-        try:
-            dict_info = json.loads(lparts[8], encoding='utf-8')
-        except:
-            dict_info = json.loads(lparts[8])
+        dict_info = json.loads(lparts[8], encoding='utf-8')
         if "reliability_show" not in dict_info.keys():
             dict_info["reliability_show"] = []
 
