@@ -18,7 +18,7 @@ Contact `yshbioinfo@126.com` for commercial licensing options. Commercial users 
 
 
 # ML-ExonCNV  
-*A machine learning-based tool for exon-level Copy Number Variation (CNV) detection from DNA sequencing data.*  
+*A machine learning-based tool for exon-level Copy Number Variation (CNV) detection from DNA sequencing data (support hg19 and hg38).*  
 
 
 
