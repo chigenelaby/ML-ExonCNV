@@ -588,7 +588,7 @@ def to_o(f_in_fmtgene, l_add):
         lparts[2] = str(cnv.end)
 
         # manta结果，添加标注
-        dict_info = json.loads(lparts[8], encoding='utf-8')
+        dict_info = json.loads(lparts[8])
         if "reliability_show" not in dict_info.keys():
             dict_info["reliability_show"] = []
 

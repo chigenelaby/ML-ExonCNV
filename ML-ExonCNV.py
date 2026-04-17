@@ -131,6 +131,14 @@ def get_qcstat(bed,outdir):
     statsum,stattarget = f'{outdir}/Stat/stat_summary',f'{outdir}/Stat/stat_target'  
     subprocess.run(cmd, shell=True, text=True, stdout=subprocess.PIPE) ## hsy
 
+
+def gc_depth(stattarget_gc, sex, statsummary_gc):
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    cmd = f'python {script_dir}/scripts/get_statsumgc.py  -i {stattarget_gc} --sex {sex} -o {statsummary_gc}'
+    subprocess.run(cmd, shell=True, text=True, stdout=subprocess.PIPE)
+
+
+
 #GC correction
 def gc_correction(bed,outdir):
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -231,7 +239,7 @@ def wescnv1(samplepath,cnvconfig,sex):
     cmd2 = f'python {script_dir}/src/exon_pipeline/forward/make_flags.py --wkcode {libcode} --analyse_path {respath} --config-file {cnvconfig}' 
     subprocess.run(cmd2, shell=True, text=True, stdout=subprocess.PIPE)
 
-def wescnv2(samplepath,cnvconfig,sex,freq_db,bam,version,reference,tmpfile = False, version="hg19"):
+def wescnv2(samplepath,cnvconfig,sex,freq_db,bam,hgversion,reference,tmpfile = False, version="hg19"):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     libcode = samplepath.split('/')[-1]
     respath = f'{samplepath}/ExonResultV3'
@@ -311,7 +319,7 @@ def stats_single(name,sex,bam,vcf, version, reference, bed, outdir,tmpfile = Fal
     getfold80(samplepath)
     gcbed = f'{newbed}_gc'
     nuc_command = f"bedtools nuc -fi {reference} -bed {newbed} >{gcbed}"
-    subprocess.run(nuc_command, shell=True, capture_output=True, text=True, stdout=subprocess.PIPE)
+    subprocess.run(nuc_command, shell=True, capture_output=True, text=True)
     #GC correction
     depfile = f'{samplepath}/Stat/stat_target_gc'
     gc_correction(gcbed,samplepath)
@@ -319,6 +327,7 @@ def stats_single(name,sex,bam,vcf, version, reference, bed, outdir,tmpfile = Fal
     database = f"{outdir}/{LIBRARY_FILES[version]['dep_contrast_db']}"
     depcontrast_tablename = f"wes_depcontrast_{version}"
     archivedb(samplepath,sex, database,depcontrast_tablename)
+    gc_depth(f"{samplepath}/Stat/stat_target_gc",sex,f"{samplepath}/Stat/stat_summary_gc")
     tmplist = [os.path.join(samplepath,'depthcov')]
     if not tmpfile:
         delete_tmpfiles(tmplist)
@@ -336,8 +345,9 @@ def precnv_single(name,sex,bam,vcf,version,reference, bed, outdir,tmpfile = Fals
     wescnv1(samplepath,cnvconfig,sex)
 
 def single_analysis(name,sex,bam,vcf,bed,outdir,version,reference, freqdb = '',tmpfile = False):
+    tmpfile = False
     precnv_single(name,sex,bam,vcf, version,reference, bed, outdir,tmpfile = tmpfile)
-    CNV_calling(name,sex,bam,outdir, version,reference,freqdb = freqdb,tmpfile = tmpfile)
+    CNV_detect(name,sex,bam,outdir, version,reference,freqdb = freqdb,tmpfile = tmpfile)
 
 # Module 1: Obtain basic stats required for sample analysis (output: sample/Stat/stat_target_gc)
 def get_stats(inputfile,outdir,version,reference,sampcov = 0.8,max_threads = 3,min_dep = 50,tmpfile = False):
@@ -420,10 +430,10 @@ def get_stats(inputfile,outdir,version,reference,sampcov = 0.8,max_threads = 3,m
     # print(f'newbed: {newbed}')
     gcbed = f'{newbed}_gc'
     nuc_command = f"bedtools nuc -fi {reference} -bed {newbed} >{gcbed}"
-    subprocess.run(nuc_command, shell=True, capture_output=True, text=True, stdout=subprocess.PIPE)  ## hsy
+    subprocess.run(nuc_command, shell=True, capture_output=True, text=True)  ## hsy
     
     #mosdepth for new bed
-    # multiple_run(get_dep_bed,mosdep_missionlist2,maxnum = int(max_threads))
+    multiple_run(get_dep_bed,mosdep_missionlist2,maxnum = int(max_threads))
     
     #get final stats
     multiple_run(get_qcstat,stats_missionlist,maxnum = int(max_threads))
@@ -477,11 +487,13 @@ def get_stats(inputfile,outdir,version,reference,sampcov = 0.8,max_threads = 3,m
     
     # record depth info
     depcontrast_tablename = f"wes_depcontrast_{version}"
-    archmission_list = []
+    archmission_list, gc_depth_list = [], []
     for (name,sex,bam,vcf) in filtered_samples:
         samplepath = f'{outdir}/{name}'
         archmission_list.append((samplepath,sex, database,depcontrast_tablename))
+        gc_depth_list.append((f"{samplepath}/Stat/stat_target_gc",sex,f"{samplepath}/Stat/stat_summary_gc"))
     multiple_run(archivedb,archmission_list,maxnum = int(max_threads))
+    multiple_run(gc_depth,gc_depth_list,maxnum = int(max_threads))
     #delete tmpfiles
     if not tmpfile:
         delete_tmpfiles(tmplist)
@@ -556,6 +568,7 @@ def CNV_detect(name,sex,bam,outdir, version,reference,freqdb = '',tmpfile = Fals
     wescnv2(samplepath,cnvconfig,sex,freqdb,bam,version,reference,tmpfile = tmpfile, version=version)
 
 def CNV_calling(inputfile,outdir,version,reference,freqdb = '',tmpfile = False, regions = '',max_threads = 5):
+    tmpfile = False
     script_dir = os.path.dirname(os.path.abspath(__file__))
     lib_files = LIBRARY_FILES[version]  # 获取版本专属文件配置
     cnvmissionlist = []
@@ -592,6 +605,7 @@ def CNV_calling(inputfile,outdir,version,reference,freqdb = '',tmpfile = False, 
 
 #Get control database for cnv calling (combine Module1 and Module2)
 def control_train(inputfile,outdir,version,reference,sampcov = 0.8,max_threads = 3,min_dep = 50,tmpfile = False):
+    tmpfile = False
     filtered_sample_file = get_stats(inputfile,outdir,version,reference,sampcov = sampcov,max_threads = max_threads,min_dep = min_dep,tmpfile = tmpfile)
     get_cnv_db(inputfile,outdir,version,filtered_sample_file,max_threads = max_threads,tmpfile = tmpfile)
 
